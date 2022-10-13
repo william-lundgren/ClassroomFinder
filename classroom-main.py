@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup as bs
 from datetime import datetime
+import mysql.connector
 
 
 def add(key, dic, count):
@@ -12,7 +13,33 @@ def add(key, dic, count):
         dic[key] = count
 
 
-def scrape(url, day=datetime.today().strftime('%Y-%m-%d')):  # Make day preset to current date
+def add_to_db(classroom, bookings, no_bookings, date):
+    with open("pass.txt", "r") as file:
+        password = file.readline()
+
+    mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password=password,
+        database="schedule")
+
+    cursor = mydb.cursor(buffered=True)
+    sql = "SHOW TABLES LIKE 'day_';"
+    cursor.execute(sql)
+    res = cursor.fetchall()
+    print(len(res))
+
+    try:
+        sql = "INSERT INTO day_i (Classroom, bookings, no_bookings, date) VALUES (%s, %s, %s, %s)"
+        val = [classroom, bookings, int(no_bookings), date]
+        cursor.execute(sql, val)
+        mydb.commit()
+        print(cursor.rowcount, "record inserted.")
+    except mysql.connector.errors.IntegrityError:
+        print("Duplicate name maybe")
+
+
+def scrape(url, db, day=datetime.today().strftime('%Y-%m-%d')):  # Make day preset to current date
     # Setup html and get response
     response = requests.get(url)
     html = response.content
@@ -72,13 +99,27 @@ def scrape(url, day=datetime.today().strftime('%Y-%m-%d')):  # Make day preset t
 
     print(f"Current day: {day}")
     print(no_of_bookings)
-    print(times_booked)
+    for i in times_booked:
+        print(i, times_booked.get(i))
     print(sorted(no_of_bookings.items(), key=lambda x: x[1]))
 
     # Find all the lowest values
     min_val = min(no_of_bookings.values())
     res = [key for key, value in no_of_bookings.items() if value == min_val]
     print(res)
+
+    # Remove dumb spaces idk why it didnt before
+    for ele in times_booked:
+        if times_booked[ele][0] == " ":
+            times_booked[ele] = times_booked[ele][1:]
+
+    # Add to database
+    if db:
+        for room in classrooms:
+            try:
+                add_to_db(room, times_booked[room], no_of_bookings[room], day)
+            except KeyError:
+                add_to_db(room, "empty", no_of_bookings[room], day)
 
 
 '''
@@ -90,13 +131,19 @@ use find(bookingDiv) (class) on every day from classrooms
 
 
 def main():
+    """
+    Init new table per day mysql
+    create table day_i ( Classroom VARCHAR(150) NOT NULL,
+    bookings VARCHAR(600) NOT NULL,  no_bookings INT unsigned NOT NULL,  date DATE NOT NULL,  PRIMARY KEY (Classroom) );
+    """
+
     # Level 3 and 2
     url = "https://cloud.timeedit.net/lu/web/lth1/ri16666565000YQQ65Z652500Xy7Y4810g75g0X6Y65ZW6465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X6615507257904YY63X1141X04632025YX64516406674X5Y702746YX30Q20456Y794756.html"
     # For all level 3
     #   url = "https://cloud.timeedit.net/lu/web/lth1/ri16666565000YQQ65Z652500Xy7Y4810g75g0X6Y65ZW6465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X66155072Y70445Y6251160X7Q7.html"
     # initial test
     #    url = "https://cloud.timeedit.net/lu/web/lth1/ri16666565000YQQ65Z652500Xy7Y4810g75g0X6Y65ZW6465X2Q15976047QY.html"
-    scrape(url)
+    scrape(url, True)
 
 
 if __name__ == "__main__":
