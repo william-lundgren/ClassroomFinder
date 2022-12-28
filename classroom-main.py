@@ -5,6 +5,7 @@ import mysql.connector
 
 
 def add(key, dic, count):
+    # Add to dictionary depending on if key already exists
     if " " in key:
         key = key.split()[0]
     if key in dic:
@@ -23,19 +24,31 @@ def add_to_db(classroom, bookings, no_bookings, date):
         password=password,
         database="schedule")
 
-    cursor = mydb.cursor(buffered=True)
-    sql = "SHOW TABLES LIKE 'day_';"
-    cursor.execute(sql)
-    res = cursor.fetchall()
-    print(len(res))
+    # Indexed from 1
+    day_num = "".join(date.split("-"))
 
+    cursor = mydb.cursor(buffered=True)
+
+    # Fetch tables matching current day, make table if there is none
+    sql = f"SHOW TABLES LIKE 'day_{day_num}';"
+    cursor.execute(sql)
+
+    # Make a new table for current date
+    if len(cursor.fetchall()) == 0:
+        text = f"create table day_{day_num} ( Classroom VARCHAR(150) NOT NULL, bookings VARCHAR(600) NOT NULL," \
+               "  no_bookings INT unsigned NOT NULL,  date DATE NOT NULL,  PRIMARY KEY (Classroom) );"
+        cursor.execute(text)
+        mydb.commit()
+        print("Created new table")
     try:
-        sql = "INSERT INTO day_i (Classroom, bookings, no_bookings, date) VALUES (%s, %s, %s, %s)"
+        sql = f"INSERT INTO day_{day_num} (Classroom, bookings, no_bookings, date) VALUES (%s, %s, %s, %s)"
+        # Format for the values in the table
         val = [classroom, bookings, int(no_bookings), date]
         cursor.execute(sql, val)
         mydb.commit()
         print(cursor.rowcount, "record inserted.")
     except mysql.connector.errors.IntegrityError:
+        # Throws above error if table already has that classroom name
         print("Duplicate name maybe")
 
 
@@ -43,7 +56,7 @@ def scrape(url, db, day=datetime.today().strftime('%Y-%m-%d')):  # Make day pres
     # Setup html and get response
     response = requests.get(url)
     html = response.content
-    soup = bs(html, "lxml")
+    soup = bs(html, "")
     bookings = soup.find_all("div", "bookingDiv")
 
     # take the interesting info from bookings and divide by category
@@ -84,9 +97,6 @@ def scrape(url, db, day=datetime.today().strftime('%Y-%m-%d')):  # Make day pres
     for classroom in classrooms:
         add(classroom, no_of_bookings, 0)
 
-    # for i in relevant_bookings:
-    #     print(i)
-
     # Find all occurrences of the classroom
     for booking in relevant_bookings:
         for info in booking:
@@ -95,10 +105,12 @@ def scrape(url, db, day=datetime.today().strftime('%Y-%m-%d')):  # Make day pres
                 add("MH:" + info.split("MH:")[1], times_booked, " " + " ".join(booking[0].split()[1:4]))
 
     # Get rid of first whitespace
-    times_booked["MH:362A"] = times_booked["MH:362A"][1:]
+    for ele in times_booked:
+        if times_booked[ele][0] == " ":
+            times_booked[ele] = times_booked[ele][1:]
 
     print(f"Current day: {day}")
-    print(no_of_bookings)
+    print(no_of_bookings, "no")
     for i in times_booked:
         print(i, times_booked.get(i))
     print(sorted(no_of_bookings.items(), key=lambda x: x[1]))
@@ -107,11 +119,6 @@ def scrape(url, db, day=datetime.today().strftime('%Y-%m-%d')):  # Make day pres
     min_val = min(no_of_bookings.values())
     res = [key for key, value in no_of_bookings.items() if value == min_val]
     print(res)
-
-    # Remove dumb spaces idk why it didnt before
-    for ele in times_booked:
-        if times_booked[ele][0] == " ":
-            times_booked[ele] = times_booked[ele][1:]
 
     # Add to database
     if db:
@@ -137,12 +144,13 @@ def main():
     bookings VARCHAR(600) NOT NULL,  no_bookings INT unsigned NOT NULL,  date DATE NOT NULL,  PRIMARY KEY (Classroom) );
     """
 
+    # LP 2
+    url = "https://cloud.timeedit.net/lu/web/lth1/ri1XY072w55019QQ6XZYW75Y04y1Z655650Y48Q60v5XX20571452Y2254X66055Y7X65420Y5451650XY91X4107X50677Y4206554164557774XY2085Y5421X5X67Y21106256208Y590514427YX5699YX600452635Y7X0462X640745644QX74361Y02Y65140737ZofQc.html"
     # Level 3 and 2
-    url = "https://cloud.timeedit.net/lu/web/lth1/ri16666565000YQQ65Z652500Xy7Y4810g75g0X6Y65ZW6465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X6615507257904YY63X1141X04632025YX64516406674X5Y702746YX30Q20456Y794756.html"
+#    url = "https://cloud.timeedit.net/lu/web/lth1/ri16666565000YQQ65Z652500Xy7Y4810g75g0X6Y65ZW6465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X6615507257904YY63X1141X04632025YX64516406674X5Y702746YX30Q20456Y794756.html"
     # For all level 3
     #   url = "https://cloud.timeedit.net/lu/web/lth1/ri16666565000YQQ65Z652500Xy7Y4810g75g0X6Y65ZW6465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X66155072Y70445Y6251160X7Q7.html"
-    # initial test
-    #    url = "https://cloud.timeedit.net/lu/web/lth1/ri16666565000YQQ65Z652500Xy7Y4810g75g0X6Y65ZW6465X2Q15976047QY.html"
+    ''
     scrape(url, True)
 
 
