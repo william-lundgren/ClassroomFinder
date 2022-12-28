@@ -10,9 +10,9 @@ import time
 
 
 def send_mail(receiver_email, content, day):
-    port = 465  # For SSL
+    port = 465
     smtp_server = "smtp.gmail.com"
-    sender_email = "classroomfindermh@gmail.com"  # Enter your address
+    sender_email = getenv("sender")
     password = getenv("password")
     message = f"""\
 Subject: Dagens bra klassrum ({day}). Ha en fin dag.
@@ -127,7 +127,8 @@ def setup():
     day = "2022-12-13"
     res = scrape(url, day)
 
-    send_mail("skolkontot123@gmail.com", res, day)
+    for mail in getenv("password").split(","):
+        send_mail(mail, res, day)
 
 
 def main():
