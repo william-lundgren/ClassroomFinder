@@ -121,7 +121,6 @@ use find(bookingDiv) (class) on every day from classrooms
 
 def empty(day):
     # Check for leading 0s, if all are then its empty
-    print(day.split("\n")[-1])
     for classroom in day.split("\n"):
         if classroom[0] != "0":
             return False
@@ -130,7 +129,7 @@ def empty(day):
 
 def setup():
     # Schedule url for every classroom
-    url = "https://cloud.timeedit.net/lu/web/lth1/ri16W65057506XQQ55ZZ767005yYW64856Y05506Q65116X65262902465144XY70016755X0Y5Y247X1052252X5176456060X49Y54457Y6557104X670Y5822Y1450862X46Y47X6095X72551501Y40Y014XX562424027Y546165X36743997162730X504YY5X4625676047QY.html"
+    url = "https://cloud.timeedit.net/lu/web/lth1/ri16666510500YQQ95Z652500Xy7Y6810g76g1X6Y65ZW7465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X6615507257904YY63X1141X04632025YX64516406674X5Y702746YX30Q20456Y794756.html"
 
     # day of format YYYY-MM-DD
     day = datetime.today().strftime('%Y-%m-%d')
@@ -151,7 +150,7 @@ def main():
     # Entered time is not always same as time program think because of time zones, a lazy fix but it works for this purpose.
     wanted_time = "07:30"
 
-    # Subtract one from first 2 digits, keeping day change and leading 0s in mind
+    # Subtract 1 from first 2 digits, keeping day change and leading 0s in mind
     formatted = (int(wanted_time.split(":")[0]) - 1) % 24
     correct_time = f"{formatted:02}{wanted_time[2:]}"
 
