@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup as bs
 import smtplib
 import ssl
 from keep_alive import keep_alive
-from os import getenv
+import os
 import schedule
 import time
 from datetime import datetime
@@ -19,8 +19,8 @@ def send_mail(receiver_email, content, day):
     # Setup and send mail
     port = 465  # For SSL
     smtp_server = "smtp.gmail.com"
-    sender_email = getenv("sender")
-    password = getenv("password")
+    sender_email = os.getenv("sender")
+    password = os.getenv("password")
     message = f"""\
 Subject: Dagens bra klassrum ({day}). Ha en fin dag.
 
@@ -85,7 +85,8 @@ def scrape(url, day):
         for info in booking:
             if "MH:" in info:
                 add("MH:" + info.split("MH:")[1], no_of_bookings, 1)
-                add("MH:" + info.split("MH:")[1], times_booked, " " + " ".join(booking[0].split()[1:4]))
+                add("MH:" + info.split("MH:")[1], times_booked,
+                    " " + " ".join(booking[0].split()[1:4]))
 
     # Get rid of first whitespace
     for ele in times_booked:
@@ -127,7 +128,7 @@ def empty(day):
     return True
 
 
-def setup():
+def setup(person):
     # Schedule url for every classroom
     url = "https://cloud.timeedit.net/lu/web/lth1/ri16666510500YQQ95Z652500Xy7Y6810g76g1X6Y65ZW7465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X6615507257904YY63X1141X04632025YX64516406674X5Y702746YX30Q20456Y794756.html"
 
@@ -137,24 +138,39 @@ def setup():
     res = scrape(url, day)
 
     # Only send mail if there are things scheduled
-    if not empty(res):
-        for mail in getenv("mails").split(","):
+    if not empty(res) and person == "normal_time":
+        for mail in os.getenv("normalmails").split(","):
+            print("Sending email to:", mail)
             send_mail(mail, res, day)
+    elif not empty(res):
+        for mail in os.getenv("specmails").split(","):
+            if person in mail:
+                print("Sending email to:", mail)
+                send_mail(mail, res, day)
     else:
         print("Empty day:", day)
 
 
 def main():
+    print("Starting server!")
     keep_alive()
 
     # Entered time is not always same as time program think because of time zones, a lazy fix but it works for this purpose.
-    wanted_time = "07:30"
 
-    # Subtract 1 from first 2 digits, keeping day change and leading 0s in mind
-    formatted = (int(wanted_time.split(":")[0]) - 1) % 24
-    correct_time = f"{formatted:02}{wanted_time[2:]}"
+    wanted_times = {"eric": "06:30", "normal_time": "07:30"}
 
-    schedule.every().day.at(correct_time).do(setup)
+    times_formatted = {}
+
+    # Subtract one from first 2 digits, keeping day change and leading 0s in mind
+    for key in wanted_times.keys():
+        wanted_time = wanted_times[key]
+        formatted = (int(wanted_time.split(":")[0]) - 1) % 24
+        correct_time = f"{formatted:02}{wanted_time[2:]}"
+        times_formatted[key] = correct_time
+
+    for key in times_formatted.keys():
+        wanted_time = times_formatted[key]
+        schedule.every().day.at(wanted_time).do(setup, key)
 
     while True:
         schedule.run_pending()
