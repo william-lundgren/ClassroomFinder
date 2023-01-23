@@ -85,8 +85,10 @@ def scrape(url, day):
         for info in booking:
             if "MH:" in info:
                 add("MH:" + info.split("MH:")[1], no_of_bookings, 1)
-                add("MH:" + info.split("MH:")[1], times_booked,
-                    " " + " ".join(booking[0].split()[1:4]))
+                start_time = "".join(booking[0].split()[1:4])
+                # Only add if start time is before 17
+                if int(start_time[:2]) < 17:
+                    add("MH:" + info.split("MH:")[1], times_booked, " " + " ".join(booking[0].split()[1:4]))
 
     # Get rid of first whitespace
     for ele in times_booked:
@@ -157,7 +159,7 @@ def main():
 
     # Entered time is not always same as time program think because of time zones, a lazy fix but it works for this purpose.
 
-    wanted_times = {"eric": "06:30", "normal_time": "07:30"}
+    wanted_times = {"eric": "06:00", "normal_time": "07:30"}
 
     times_formatted = {}
 
