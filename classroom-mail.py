@@ -7,6 +7,7 @@ import os
 import schedule
 import time
 from datetime import datetime
+from date import find_week_day
 
 
 def get_time():
@@ -130,7 +131,7 @@ def empty(day):
     return True
 
 
-def setup(person):
+def setup(person, exclusions):
     # Schedule url for every classroom
     url = "https://cloud.timeedit.net/lu/web/lth1/ri16666510500YQQ95Z652500Xy7Y6810g76g1X6Y65ZW7465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X6615507257904YY63X1141X04632025YX64516406674X5Y702746YX30Q20456Y794756.html"
 
@@ -139,16 +140,22 @@ def setup(person):
 
     res = scrape(url, day)
 
+    weekend = ["Saturday", "Sunday"]
+
     # Only send mail if there are things scheduled
-    if not empty(res) and person == "normal_time":
-        for mail in os.getenv("normalmails").split(","):
-            print("Sending email to:", mail)
-            send_mail(mail, res, day)
-    elif not empty(res):
-        for mail in os.getenv("specmails").split(","):
-            if person in mail:
-                print("Sending email to:", mail)
-                send_mail(mail, res, day)
+    if not empty(res):
+        if person == "normal_time":
+            for mail in os.getenv("normalmails").split(","):
+                # Check that they want mail on weekend
+                if not (any(exclusion == main for exclusion in exclusions) and find_week_day(day) not in weekend):
+                    print("Sending email to:", mail)
+                    send_mail(mail, res, day)
+        else:
+            for mail in os.getenv("specmails").split(","):
+                if person in mail:
+                    if not (any(exclusion == main for exclusion in exclusions) and find_week_day(day) not in weekend):
+                        print("Sending email to:", mail)
+                        send_mail(mail, res, day)
     else:
         print("Empty day:", day)
 
@@ -163,6 +170,8 @@ def main():
 
     times_formatted = {}
 
+    weekend_exclusion = ["ax", "em", "wille"]
+
     # Subtract one from first 2 digits, keeping day change and leading 0s in mind
     for key in wanted_times.keys():
         wanted_time = wanted_times[key]
@@ -172,7 +181,7 @@ def main():
 
     for key in times_formatted.keys():
         wanted_time = times_formatted[key]
-        schedule.every().day.at(wanted_time).do(setup, key)
+        schedule.every().day.at(wanted_time).do(setup, key, weekend_exclusion)
 
     while True:
         schedule.run_pending()
