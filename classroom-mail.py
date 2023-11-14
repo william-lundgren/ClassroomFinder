@@ -85,10 +85,10 @@ def scrape(url, day):
     for booking in relevant_bookings:
         for info in booking:
             if "MH:" in info:
-                add("MH:" + info.split("MH:")[1], no_of_bookings, 1)
                 start_time = "".join(booking[0].split()[1:4])
                 # Only add if start time is before 17
                 if int(start_time[:2]) < 17:
+                    add("MH:" + info.split("MH:")[1], no_of_bookings, 1)
                     add("MH:" + info.split("MH:")[1], times_booked, " " + " ".join(booking[0].split()[1:4]))
 
     # Get rid of first whitespace

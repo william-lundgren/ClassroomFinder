@@ -56,7 +56,7 @@ def scrape(url, db, day=datetime.today().strftime('%Y-%m-%d')):  # Make day pres
     # Setup html and get response
     response = requests.get(url)
     html = response.content
-    soup = bs(html, "")
+    soup = bs(html, "lxml")
     bookings = soup.find_all("div", "bookingDiv")
 
     # take the interesting info from bookings and divide by category
@@ -99,10 +99,15 @@ def scrape(url, db, day=datetime.today().strftime('%Y-%m-%d')):  # Make day pres
 
     # Find all occurrences of the classroom
     for booking in relevant_bookings:
+        print(booking)
         for info in booking:
             if "MH:" in info:
-                add("MH:" + info.split("MH:")[1], no_of_bookings, 1)
-                add("MH:" + info.split("MH:")[1], times_booked, " " + " ".join(booking[0].split()[1:4]))
+                # Get only the classroom
+                time = "".join(booking[0].split()[1:4])
+                # Only add if start time is before 17
+                if int(time[:2]) < 17:
+                    add("MH:" + info.split("MH:")[1], no_of_bookings, 1)
+                    add("MH:" + info.split("MH:")[1], times_booked, " " + " ".join(booking[0].split()[1:4]))
 
     # Get rid of first whitespace
     for ele in times_booked:
@@ -145,13 +150,13 @@ def main():
     """
 
     # LP 2
-    url = "https://cloud.timeedit.net/lu/web/lth1/ri1XY072w55019QQ6XZYW75Y04y1Z655650Y48Q60v5XX20571452Y2254X66055Y7X65420Y5451650XY91X4107X50677Y4206554164557774XY2085Y5421X5X67Y21106256208Y590514427YX5699YX600452635Y7X0462X640745644QX74361Y02Y65140737ZofQc.html"
+    url = "https://cloud.timeedit.net/lu/web/lth1/ri16666510500YQQ95Z652500Xy7Y6810g76g1X6Y65ZW7465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X6615507257904YY63X1141X04632025YX64516406674X5Y702746YX30Q20456Y794756.html"
     # Level 3 and 2
 #    url = "https://cloud.timeedit.net/lu/web/lth1/ri16666565000YQQ65Z652500Xy7Y4810g75g0X6Y65ZW6465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X6615507257904YY63X1141X04632025YX64516406674X5Y702746YX30Q20456Y794756.html"
     # For all level 3
     #   url = "https://cloud.timeedit.net/lu/web/lth1/ri16666565000YQQ65Z652500Xy7Y4810g75g0X6Y65ZW6465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X66155072Y70445Y6251160X7Q7.html"
     ''
-    scrape(url, True)
+    scrape(url, False, "2023-01-23")
 
 
 if __name__ == "__main__":
