@@ -35,13 +35,13 @@ Subject: Dagens bra klassrum ({day}). Ha en fin dag.
         server.sendmail(sender_email, receiver_email, message)
 
 
-def add(key, dic, count):
+def add(key, dic, count, allow_new):
     # Add to dictionary depending on if key already exists
     if " " in key:
         key = key.split()[0]
     if key in dic:
         dic[key] += count
-    else:
+    elif allow_new:
         dic[key] = count
 
 
@@ -79,7 +79,7 @@ def scrape(url, day):
 
     # Set all possible values, maybe make it customizable for more classrooms
     for classroom in classrooms:
-        add(classroom, no_of_bookings, 0)
+        add(classroom, no_of_bookings, 0, True)
 
     # Find all occurrences of the classroom
     for booking in relevant_bookings:
@@ -88,8 +88,9 @@ def scrape(url, day):
                 start_time = "".join(booking[0].split()[1:4])
                 # Only add if start time is before 17
                 if int(start_time[:2]) < 17:
-                    add("MH:" + info.split("MH:")[1], no_of_bookings, 1)
-                    add("MH:" + info.split("MH:")[1], times_booked, " " + " ".join(booking[0].split()[1:4]))
+                    add("MH:" + info.split("MH:")[1], no_of_bookings, 1, False)
+                    add("MH:" + info.split("MH:")[1], times_booked,
+                        " " + " ".join(booking[0].split()[1:4]), True)
 
     # Get rid of first whitespace
     for ele in times_booked:
@@ -133,7 +134,7 @@ def empty(day):
 
 def setup(person, exclusions):
     # Schedule url for every classroom
-    url = "https://cloud.timeedit.net/lu/web/lth1/ri16666510500YQQ95Z652500Xy7Y6810g76g1X6Y65ZW7465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X6615507257904YY63X1141X04632025YX64516406674X5Y702746YX30Q20456Y794756.html"
+    url = "https://cloud.timeedit.net/lu/web/lth1/ri17666530000YQQ85Z552500Xy7Y3810g76g5X6Y65ZW8465X2Q10X126004Y745502461Y5767X54Y055X06XY5042952511Y6476X8647455205XY245761X09075522XY82971Y4545Y4X6615507257904YY63X1141X04632025YX64516406674X5Y702746YX30Q20456Y794756.html"
 
     # day of format YYYY-MM-DD
     day = datetime.today().strftime('%Y-%m-%d')
@@ -147,13 +148,15 @@ def setup(person, exclusions):
         if person == "normal_time":
             for mail in os.getenv("normalmails").split(","):
                 # Check that they want mail on weekend
-                if not (any(exclusion == main for exclusion in exclusions) and find_week_day(day) not in weekend):
+                if not (any(exclusion == main for exclusion in exclusions)
+                        and find_week_day(day) not in weekend):
                     print("Sending email to:", mail)
                     send_mail(mail, res, day)
         else:
             for mail in os.getenv("specmails").split(","):
                 if person in mail:
-                    if not (any(exclusion == main for exclusion in exclusions) and find_week_day(day) not in weekend):
+                    if not (any(exclusion == main for exclusion in exclusions)
+                            and find_week_day(day) not in weekend):
                         print("Sending email to:", mail)
                         send_mail(mail, res, day)
     else:
@@ -163,6 +166,9 @@ def setup(person, exclusions):
 def main():
     print("Starting server!")
     keep_alive()
+
+    # Changes time offset depending on time of year, lazy solution but timezones are annoying
+    summer_time = False
 
     # Entered time is not always same as time program think because of time zones, a lazy fix but it works for this purpose.
 
@@ -175,7 +181,8 @@ def main():
     # Subtract one from first 2 digits, keeping day change and leading 0s in mind
     for key in wanted_times.keys():
         wanted_time = wanted_times[key]
-        formatted = (int(wanted_time.split(":")[0]) - 1) % 24
+        formatted = (int(wanted_time.split(":")[0]) - 1 -
+                     int(summer_time)) % 24
         correct_time = f"{formatted:02}{wanted_time[2:]}"
         times_formatted[key] = correct_time
 
