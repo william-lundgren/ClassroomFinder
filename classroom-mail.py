@@ -19,8 +19,8 @@ def send_mail(receiver_email, content, day):
     # Setup and send mail
     port = 465  # For SSL
     smtp_server = "smtp.gmail.com"
-    sender_email = os.getenv("sender")
-    password = os.getenv("password")
+    sender_email = os.getenv("sender_mail")
+    password = os.getenv("mail_password")
     message = f"""\
 Subject: Dagens bra klassrum ({day}). Ha en fin dag.
 
