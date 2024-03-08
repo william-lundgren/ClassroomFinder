@@ -165,6 +165,8 @@ def setup(person, exclusions):
 def main():
     print("Starting server!")
 
+    send_mail("superbanan74@gmail.com", "testing", "test")
+
     # Changes time offset depending on time of year, lazy solution but timezones are annoying
     summer_time = False
 
