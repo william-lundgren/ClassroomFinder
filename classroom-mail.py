@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup as bs
 import smtplib
 import ssl
-from keep_alive import keep_alive
 import os
 import schedule
 import time
