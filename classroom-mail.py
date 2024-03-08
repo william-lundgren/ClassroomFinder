@@ -33,6 +33,7 @@ Subject: Dagens bra klassrum ({day}). Ha en fin dag.
         print("Sending mail", get_time())
         server.sendmail(sender_email, receiver_email, message)
 
+        print("Mail sent!", get_time())
 
 def add(key, dic, count, allow_new):
     # Add to dictionary depending on if key already exists
