@@ -6,4 +6,4 @@ The main file is used for connecting with a local sql database and/or outputting
 
 This is a personal project for personal use.
 
-WIP
+WIP: more features to be added.
