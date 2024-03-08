@@ -164,7 +164,6 @@ def setup(person, exclusions):
 
 def main():
     print("Starting server!")
-    keep_alive()
 
     # Changes time offset depending on time of year, lazy solution but timezones are annoying
     summer_time = False
