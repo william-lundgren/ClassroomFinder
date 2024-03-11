@@ -170,8 +170,7 @@ def main():
 
     weekend_exclusion = ["ax", "em", "wille"]
 
-    for key in wanted_times.keys():
-        wanted_time = wanted_times[key]
+    for key, wanted_time in wanted_times.items():
         schedule.every().day.at(wanted_time).do(setup, key, weekend_exclusion)
 
     while True:
