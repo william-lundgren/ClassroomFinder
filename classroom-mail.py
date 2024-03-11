@@ -33,7 +33,7 @@ Subject: Dagens bra klassrum ({day}). Ha en fin dag.
         print("Sending mail", get_time())
         server.sendmail(sender_email, receiver_email, message)
 
-        print("Mail sent!", get_time())
+        print("Mail sent!\n", get_time())
 
 def add(key, dic, count, allow_new):
     # Add to dictionary depending on if key already exists
@@ -167,7 +167,7 @@ def main():
     print("Starting server!")
     print(datetime.now())
 
-    wanted_times = {"eric": "06:00", "normal_time": "14:57"}
+    wanted_times = {"eric": "06:00", "normal_time": "07:30"}
 
     weekend_exclusion = ["ax", "em", "wille"]
 
