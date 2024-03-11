@@ -165,7 +165,7 @@ def setup(person, exclusions):
 
 def main():
     print("Starting server!")
-
+    print(datetime.now())
     # Changes time offset depending on time of year, lazy solution but timezones are annoying
     summer_time = False
 
@@ -195,7 +195,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print("Starting now!")
     main()
-else:
-    print("not run from main file")
