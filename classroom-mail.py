@@ -167,7 +167,7 @@ def main():
     print("Starting server!")
     print(datetime.now())
 
-    wanted_times = {"eric": "06:00", "normal_time": "14:50"}
+    wanted_times = {"eric": "06:00", "normal_time": "14:57"}
 
     weekend_exclusion = ["ax", "em", "wille"]
 
