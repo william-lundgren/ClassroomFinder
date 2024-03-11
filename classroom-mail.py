@@ -195,4 +195,7 @@ def main():
 
 
 if __name__ == "__main__":
+    print("Starting now!")
     main()
+else:
+    print("not run from main file")
