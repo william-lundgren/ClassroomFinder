@@ -166,27 +166,14 @@ def setup(person, exclusions):
 def main():
     print("Starting server!")
     print(datetime.now())
-    # Changes time offset depending on time of year, lazy solution but timezones are annoying
-    summer_time = False
 
-    # Entered time is not always same as time program think because of time zones, a lazy fix but it works for this purpose.
-
-    wanted_times = {"eric": "06:00", "normal_time": "07:30"}
-
-    times_formatted = {}
+    wanted_times = {"eric": "06:00", "normal_time": "14:50"}
 
     weekend_exclusion = ["ax", "em", "wille"]
 
-    # Subtract one from first 2 digits, keeping day change and leading 0s in mind
     for key in wanted_times.keys():
         wanted_time = wanted_times[key]
-        formatted = (int(wanted_time.split(":")[0]) - 1 -
-                     int(summer_time)) % 24
-        correct_time = f"{formatted:02}{wanted_time[2:]}"
-        times_formatted[key] = correct_time
-
-    for key in times_formatted.keys():
-        wanted_time = times_formatted[key]
+        print(wanted_time)
         schedule.every().day.at(wanted_time).do(setup, key, weekend_exclusion)
 
     while True:
