@@ -165,7 +165,6 @@ def setup(person, exclusions):
 
 def main():
     print("Starting server!")
-    print(datetime.now())
 
     wanted_times = {"eric": "06:00", "normal_time": "07:30"}
 
@@ -173,7 +172,6 @@ def main():
 
     for key in wanted_times.keys():
         wanted_time = wanted_times[key]
-        print(wanted_time)
         schedule.every().day.at(wanted_time).do(setup, key, weekend_exclusion)
 
     while True:
